@@ -139,9 +139,13 @@ class Simulator:
         self.reset_simulation(x0.copy())
 
         computation_times = []
-        pbar = trange(int(T / self.Ts), unit='time step')
+        if verbose > 0:
+            pbar = trange(int(T / self.Ts), unit='time step')
+        else:
+            pbar = range(int(T / self.Ts))
         for i in pbar:
-            pbar.set_postfix(current_time=f'{i * self.Ts:.2f}/ {T}')
+            if verbose > 0:
+                pbar.set_postfix(current_time=f'{i * self.Ts:.2f}/ {T}')
             if constant_u is not None:
                 u_new = constant_u
             else:
@@ -178,7 +182,8 @@ class Simulator:
             self.u_sim.extend([self.saturation(u_new)] * (len(t) - 1))  # output after saturation
             self.k_index.append(self.k_index[-1] + len(t) - 1)  # can be used to get the vales for the given time steps
 
-        pbar.close()
+        if verbose > 0:
+            pbar.close()
         self.controller.reset()
 
         if self.value_function is None:

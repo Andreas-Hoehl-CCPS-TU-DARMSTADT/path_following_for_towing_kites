@@ -280,7 +280,7 @@ def load_simulation(path):
 
 def run_simulation(sim_parameter: SimulationParameter, control_parameter: ControlParameter, name: str, save_folder: str,
                    notes: str, visualise: bool, overwrite: bool = False,
-                   dont_ask_user: bool = False) -> SimulationResult:
+                   dont_ask_user: bool = False, verbose: int = 0) -> SimulationResult:
     """Runs and saves a closed-loop simulation.
 
     This function will run and save a closed loop simulation. The results are stored in $(SIMULATION_FOLDER)
@@ -304,6 +304,8 @@ def run_simulation(sim_parameter: SimulationParameter, control_parameter: Contro
     dont_ask_user : bool (default = False)
         if overwrite is True usually the user is ask whether they want to overwrite the simulation.
         if this flag is True the user is not asked and the simulation will not be overwritten.
+    verbose : int (default=0)
+        0 = no output >0 = write current simulation time
 
     """
     wind_function, drift_function = _get_wind_and_drift_function(sim_parameter)
@@ -332,7 +334,7 @@ def run_simulation(sim_parameter: SimulationParameter, control_parameter: Contro
 
     if calculate:
         start_time = time.time()
-        result = simulator.run_simulation(sim_parameter['simulation_time'], x0, verbose=1,
+        result = simulator.run_simulation(sim_parameter['simulation_time'], x0, verbose=verbose,
                                           delay_input=sim_parameter['delay_u'])
         simulation_duration = time.time() - start_time
 
@@ -627,4 +629,4 @@ if __name__ == '__main__':
                    control_parameter=_control_parameter,
                    name='test',
                    save_folder='test',
-                   notes='Hello', visualise=True)
+                   notes='Hello', visualise=True, verbose=1)
