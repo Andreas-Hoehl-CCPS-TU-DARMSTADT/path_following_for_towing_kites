@@ -11,12 +11,13 @@ import numpy as np
 from tqdm import trange
 
 
-def _run_simulation_for_different_initial_values(controller_type):
+def _run_simulation_for_different_initial_values(controller_type, name_appendix='', horizon=5):
     simulation_parameter = simulate.get_simulation_parameter(120)
-    folder = f'initial_values_{controller_type}'
+    folder = f'initial_values_{controller_type}' + name_appendix
     control_parameter = simulate.get_control_parameter(controller_type=controller_type,
                                                        prediction_model_name='physical',
                                                        reference_name='physical_trajectory')
+    control_parameter['prediction_horizon'] = horizon
 
     theta_table = []
     phi_table = []
@@ -43,17 +44,20 @@ def _run_simulation_for_different_initial_values(controller_type):
     pbar.close()
 
     extra_columns = {'theta_0': theta_table, 'phi_0': phi_table, 'psi_0': psi_table, 'name': names_table}
-    simulate.make_table_of_simulations(f'initial_value_table_{controller_type}', [folder], extra_colums=extra_columns)
+    simulate.make_table_of_simulations(f'initial_value_table_{controller_type}' + name_appendix, [folder],
+                                       extra_colums=extra_columns)
 
 
-def _create_success_plot(controller_type):
-    table = pd.read_csv(path_handling.SIMULATION_DIR / f'initial_value_table_{controller_type}.csv')
+def _create_success_plot(controller_type, name_appendix=''):
+    table = pd.read_csv(path_handling.SIMULATION_DIR / f'initial_value_table_{controller_type}{name_appendix}.csv')
     success_initial_values = []
     failed_initial_values = []
     failed_names = []
     for name, theta, phi, psi, thrust, success_rate in table[
         ['name', 'theta_0', 'phi_0', 'psi_0', 'average_thrust', 'success_rate']].to_numpy():
-        if thrust < 520000 or success_rate < 100:
+        if thrust < 200000 or success_rate < 100:
+            print(thrust)
+            print(success_rate)
             failed_names.append(name)
             failed_initial_values.append([theta, phi, psi])
         else:
@@ -84,22 +88,23 @@ def _create_success_plot(controller_type):
     cbar = plt.colorbar(a)
     cbar.ax.set_ylabel(r'$\psi$ in $[\deg]$', rotation=270)
     plt.tight_layout()
-    fig.savefig(path_handling.SIMULATION_DIR / f'different_initial_values_{controller_type}.png')
+    fig.savefig(path_handling.SIMULATION_DIR / f'different_initial_values_{controller_type}{name_appendix}.png')
     print(
         'Print name of failed initial values.'
         'You might want to have a closer look at these simulations using view_simulation.py')
     print(failed_names)
     print(failed_initial_values)
+    print(f'success percentage: {100*len(success_initial_values)/(len(success_initial_values)+len(failed_initial_values))}')
     return failed_initial_values / 180 * np.pi, failed_names
 
 
-def _rerun_simulation_with_longer_prediction_horizon(initial_values, names):
+def _rerun_simulation_with_longer_prediction_horizon(initial_values, names, controller_type):
     simulation_parameter = simulate.get_simulation_parameter(120)
     folder = 'initial_values_rerun'
-    control_parameter_1 = simulate.get_control_parameter(controller_type='pf',
+    control_parameter_1 = simulate.get_control_parameter(controller_type=controller_type,
                                                          prediction_model_name='physical',
                                                          reference_name='physical_trajectory')
-    control_parameter_2 = simulate.get_control_parameter(controller_type='pf',
+    control_parameter_2 = simulate.get_control_parameter(controller_type=controller_type,
                                                          prediction_model_name='physical',
                                                          reference_name='physical_trajectory')
     control_parameter_2['prediction_horizon'] = 30
@@ -118,8 +123,8 @@ def _rerun_simulation_with_longer_prediction_horizon(initial_values, names):
 
 def main():
     controller_type = 'pf'
-    _run_simulation_for_different_initial_values(controller_type)
-    bad_initial_values, bad_initial_values_names = _create_success_plot(controller_type)
+    _run_simulation_for_different_initial_values(controller_type, name_appendix='', horizon=5)
+    bad_initial_values, bad_initial_values_names = _create_success_plot(controller_type, name_appendix='')
     # _rerun_simulation_with_longer_prediction_horizon(bad_initial_values, bad_initial_values_names, controller_type)
 
 

@@ -10,6 +10,6 @@ collect_info in controller/my_MPC.
 from simulate import visualize_result
 
 if __name__ == '__main__':
-    folder = 'default_parameter/physical_prediction_model_pf'
-    name = 'physical_trajectory'
+    folder = 'parameter_comparison_pf'
+    name = 's_10.0_q11_8000.0'
     visualize_result(name, folder)

@@ -12,7 +12,7 @@ def _run_harmonic_wind_simulations(controller_type):
     m_table = []
     names_table = []
 
-    frequencies = [0.01, 0.05, 0.1, 0.5, 1, 1.5]
+    frequencies = list(np.logspace(-2, np.log10(.5), 50))
     magnitudes = [2, 4, 6, 8, 10]
 
     folders = [f'harmonic_wind_{controller_type}']
@@ -21,7 +21,7 @@ def _run_harmonic_wind_simulations(controller_type):
                                                        prediction_model_name='physical',
                                                        reference_name='physical_trajectory')
 
-    simulation_parameter = simulate.get_simulation_parameter(240)
+    simulation_parameter = simulate.get_simulation_parameter(200)
     simulation_parameter['wind_function_index'] = 1
 
     for freq in frequencies:
@@ -68,6 +68,12 @@ def _run_harmonic_wind_simulations(controller_type):
         fig.savefig(path_handling.SIMULATION_DIR / f'harmonic_wind_{Z_name}_{controller_type}.png')
         plt.close(fig)
 
+    for mag in magnitudes:
+        table_part = table[table['mag'] == mag][['freq', 'average_tacking_error_in_m']]
+        with open(path_handling.SIMULATION_DIR / f'harmonic_wind_{controller_type}_{mag}.txt', 'w') as f:
+            dfAsString = table_part.to_string(header=True, index=False)
+            f.write(dfAsString)
+
 
 def _run_wind_gust_simulation(controller_type):
     m_table = []
@@ -104,10 +110,10 @@ def _run_wind_gust_simulation(controller_type):
 
 
 def main():
-    _run_harmonic_wind_simulations('pf')
-    _run_harmonic_wind_simulations('tt')
+    # _run_harmonic_wind_simulations('pf')
+    # _run_harmonic_wind_simulations('tt')
     _run_wind_gust_simulation('pf')
-    _run_wind_gust_simulation('tt')
+    # _run_wind_gust_simulation('tt')
 
 
 if __name__ == '__main__':

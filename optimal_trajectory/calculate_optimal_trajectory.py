@@ -61,7 +61,7 @@ def _get_initial_guess(n, use_initial_guess, calculate_half):
 
 def _calculate_optimal_trajectory(n, kite_parameter, fix_ts, comment, calculate_half,
                                   residual_state_model: ResidualModel, residual_thrust_model: ResidualModel,
-                                  use_stronger_constraints, use_initial_guess, number_of_steps, limit_delta_u):
+                                  use_stronger_constraints, use_initial_guess, number_of_steps, limit_delta_u, hmin):
     if (residual_state_model is not None or residual_thrust_model is not None) and not fix_ts:
         raise RuntimeError('residual model can only be used in combination with a fixed sampling time')
     # step size
@@ -93,7 +93,10 @@ def _calculate_optimal_trajectory(n, kite_parameter, fix_ts, comment, calculate_
     u_lb = [constraints['u_min']] * n
 
     # height constraints
-    h_lb = [[constraints['h_min']]] * n
+    if hmin:
+        h_lb = [[hmin]] * n
+    else:
+        h_lb = [[constraints['h_min']]] * n
     h_ub = [[np.inf]] * n
 
     # construct optimisation variables of the NLP using multiple shooting
@@ -231,7 +234,7 @@ def calculate_and_save_optimal_trajectory(name, n, kite_parameter, fix_ts=True, 
                                           use_stronger_constraints=False,
                                           residual_state_model_name='',
                                           residual_thrust_model_name='', visualize=True, sub_folder_name='',
-                                          use_initial_guess=True, number_of_steps=1, limit_delta_u=False):
+                                          use_initial_guess=True, number_of_steps=1, limit_delta_u=False, hmin=None):
     if residual_state_model_name:
         residual_state_model = model_zoo.load_residual_model(residual_state_model_name)
     else:
@@ -249,7 +252,8 @@ def calculate_and_save_optimal_trajectory(name, n, kite_parameter, fix_ts=True, 
                                                                residual_thrust_model=residual_thrust_model,
                                                                use_initial_guess=use_initial_guess,
                                                                number_of_steps=number_of_steps,
-                                                               limit_delta_u=limit_delta_u)
+                                                               limit_delta_u=limit_delta_u,
+                                                               hmin=hmin)
 
     trajectory = utils.OptimalTrajectory(name, x, u, t_final, thrust, doc)
     trajectory.save(sub_folder_name=sub_folder_name)

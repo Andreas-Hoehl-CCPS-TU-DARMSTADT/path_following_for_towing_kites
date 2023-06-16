@@ -34,15 +34,15 @@ def run_simulations_with_default_parameters():
 
 
 def compare_different_parameter():
-    simulation_parameter = simulate.get_simulation_parameter(60)
+    simulation_parameter = simulate.get_simulation_parameter(200)
     pred_model_name = 'physical'
-    s_values = np.concatenate((np.linspace(0, 1, 10), np.linspace(1.1, 10, 20)))
-    q11_values = np.concatenate((np.linspace(10, 100, 10), np.linspace(110, 8000, 20)))
+    s_values = list(np.logspace(-4, np.log10(8), 40))
+    q11_values = [10, 50, 100, 500, 1000, 5000]
     s_table = []
     q11_table = []
     names_table = []
 
-    for controller_type in ['tt', 'pf']:
+    for controller_type in ['pf', 'tt']:
         save_folder = f'parameter_comparison_{controller_type}'
         folders = [f'parameter_comparison_{controller_type}']
         for s in s_values:
@@ -150,9 +150,9 @@ def show_thrust_accuracy_tradeoff():
 
 
 def main():
-    run_simulations_with_default_parameters()
+    # run_simulations_with_default_parameters()
     compare_different_parameter()
-    show_thrust_accuracy_tradeoff()
+    # show_thrust_accuracy_tradeoff()
 
 
 if __name__ == '__main__':
